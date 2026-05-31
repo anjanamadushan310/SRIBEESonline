@@ -14,15 +14,15 @@ import 'core/providers/language_provider.dart';
 import 'app.dart';
 
 void main() async {
-  // Initialize app configuration for development
-  AppConfig.initialize(Environment.development);
-
-  // Ensure Flutter bindings are initialized
   WidgetsFlutterBinding.ensureInitialized();
 
   // Initialize SharedPreferences (needed before the widget tree builds
   // so providers can read persisted language & branch selections).
   final prefs = await SharedPreferences.getInstance();
+
+  // Read the user-saved API URL (set via ServerConfigScreen on physical devices).
+  final savedApiUrl = prefs.getString('custom_api_url');
+  AppConfig.initialize(Environment.development, customApiUrl: savedApiUrl);
 
   // Initialize Firebase; skip without crashing if config is missing (no google-services.json)
   await FirebaseService.initialize(optional: true);

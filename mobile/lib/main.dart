@@ -16,13 +16,15 @@ import 'core/providers/language_provider.dart';
 import 'app.dart';
 
 void main() async {
-  AppConfig.initialize(Environment.development);
-
   WidgetsFlutterBinding.ensureInitialized();
 
   final prefs = await SharedPreferences.getInstance();
 
-  await FirebaseService.initialize();
+  // Read the user-saved API URL (set via ServerConfigScreen on physical devices).
+  final savedApiUrl = prefs.getString('custom_api_url');
+  AppConfig.initialize(Environment.development, customApiUrl: savedApiUrl);
+
+  await FirebaseService.initialize(optional: true);
 
   await SentryService.initialize(
     appRunner: () => runApp(
