@@ -20,9 +20,8 @@ void main() async {
 
   final prefs = await SharedPreferences.getInstance();
 
-  // Read the user-saved API URL (set via ServerConfigScreen on physical devices).
-  final savedApiUrl = prefs.getString('custom_api_url');
-  AppConfig.initialize(Environment.development, customApiUrl: savedApiUrl);
+  // Backend is hosted at api.sribees.com — use production config.
+  AppConfig.initialize(Environment.production);
 
   await FirebaseService.initialize(optional: true);
 

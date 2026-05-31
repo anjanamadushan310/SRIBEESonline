@@ -20,9 +20,9 @@ void main() async {
   // so providers can read persisted language & branch selections).
   final prefs = await SharedPreferences.getInstance();
 
-  // Read the user-saved API URL (set via ServerConfigScreen on physical devices).
-  final savedApiUrl = prefs.getString('custom_api_url');
-  AppConfig.initialize(Environment.development, customApiUrl: savedApiUrl);
+  // Keep development pointing at emulator localhost for local dev work.
+  // For physical device testing against prod, use main.dart (Environment.production).
+  AppConfig.initialize(Environment.development);
 
   // Initialize Firebase; skip without crashing if config is missing (no google-services.json)
   await FirebaseService.initialize(optional: true);

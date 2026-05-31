@@ -23,12 +23,10 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:video_player/video_player.dart';
 
-import '../../../config/app_config.dart';
 import '../../../core/api/api_client.dart';
 import '../../../core/navigation/routes.dart';
 import '../../../core/providers/branch_provider.dart';
 import '../../../core/providers/language_provider.dart';
-import '../../setup/screens/server_config_screen.dart';
 import 'language_selection_screen.dart';
 import 'address_selection_screen.dart';
 import '../../home/screens/home_screen.dart';
@@ -152,15 +150,6 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
   void _navigateToNextScreen() {
     if (_navigating || !mounted) return;
     _navigating = true;
-
-    // If no custom API URL has been saved yet, show the server-config screen
-    // so the user can enter the backend address for their physical device.
-    final prefs = ref.read(sharedPrefsProvider);
-    final savedUrl = prefs.getString(kCustomApiUrlKey);
-    if (savedUrl == null || savedUrl.isEmpty) {
-      pushAndClearFade(context, const ServerConfigScreen());
-      return;
-    }
 
     final hasLanguage = ref.read(hasLanguageProvider);
     final hasBranch = ref.read(hasBranchProvider);
