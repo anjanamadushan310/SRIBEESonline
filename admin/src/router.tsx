@@ -163,7 +163,14 @@ const AppRouter: React.FC = () => {
                                 </RoleRoute>
                             } 
                         />
-                        <Route path="products/:id/edit" element={<ProductForm />} />
+                        <Route
+                            path="products/:id/edit"
+                            element={
+                                <RoleRoute allowedRoles={[AdminRole.SUPER_ADMIN, AdminRole.INVENTORY]}>
+                                    <ProductForm />
+                                </RoleRoute>
+                            }
+                        />
 
                         {/* Orders */}
                         <Route path="orders" element={<OrderList />} />

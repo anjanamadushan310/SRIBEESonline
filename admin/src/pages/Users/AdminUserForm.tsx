@@ -106,9 +106,7 @@ const AdminUserForm: React.FC = () => {
             setSubmitting(true);
             setError(null);
 
-            // In production, call API to create/update user
-            console.log('Submitting user:', values);
-            
+            // TODO: replace with real API call to create/update admin user
             // Simulating API delay
             await new Promise(resolve => setTimeout(resolve, 500));
 
@@ -261,7 +259,7 @@ const AdminUserForm: React.FC = () => {
                         >
                             {branches.map((branch) => (
                                 <Select.Option key={branch.branch_id} value={branch.branch_id}>
-                                    {branch.name} - {branch.city}
+                                    {branch.name} - {branch.district}
                                 </Select.Option>
                             ))}
                         </Select>

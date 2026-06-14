@@ -10,7 +10,7 @@ const Settings: React.FC = () => {
 
     const handleProfileUpdate = async (values: any) => {
         try {
-            // API call would go here
+            // TODO: replace with real API call to update profile
             message.success('Profile updated successfully');
         } catch (error) {
             message.error('Failed to update profile');
@@ -19,7 +19,7 @@ const Settings: React.FC = () => {
 
     const handlePasswordChange = async (values: any) => {
         try {
-            // API call would go here
+            // TODO: replace with real API call to change password
             message.success('Password changed successfully');
             passwordForm.resetFields();
         } catch (error) {

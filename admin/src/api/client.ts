@@ -58,31 +58,15 @@ apiClient.interceptors.response.use(
         return response;
     },
     (error: AxiosError<{ message?: string; error?: string }>) => {
-        // Handle 401 Unauthorized - Session expired or invalid
         if (error.response?.status === 401) {
-            // Don't auto-redirect - let components handle with fallback data
-            // This allows the admin dashboard to work in demo mode
-            console.warn('401 Unauthorized - API requires authentication. Using fallback data.');
-        }
-
-        // Handle 403 Forbidden - Insufficient permissions
-        if (error.response?.status === 403) {
-            console.warn('Access forbidden:', error.response.data?.message);
-        }
-
-        // Handle 404 Not Found - Endpoint doesn't exist
-        if (error.response?.status === 404) {
-            // Silently handle - components will use fallback data
-        }
-
-        // Handle 500 Server Error
-        if (error.response?.status === 500) {
-            console.error('Server error:', error.response.data?.message);
-        }
-
-        // Handle network errors
-        if (!error.response) {
-            console.error('Network error - server may be unavailable');
+            // Token expired or invalid — clear session and force re-login.
+            localStorage.removeItem('admin_token');
+            localStorage.removeItem('admin_user');
+            localStorage.removeItem('admin-auth-storage');
+            localStorage.removeItem('active_branch');
+            if (!window.location.pathname.includes('/login')) {
+                window.location.href = '/login';
+            }
         }
 
         return Promise.reject(error);

@@ -9,18 +9,16 @@ import {
     Alert,
     Space,
     Typography,
-    Spin,
     Divider,
 } from 'antd';
 import {
     UploadOutlined,
     VideoCameraOutlined,
     DeleteOutlined,
-    PlayCircleOutlined,
     CheckCircleOutlined,
     WarningOutlined,
 } from '@ant-design/icons';
-import type { UploadFile, UploadProps } from 'antd/es/upload/interface';
+import type { UploadProps } from 'antd/es/upload/interface';
 import { useAuthStore } from '../../store/authStore';
 
 const { Title, Text, Paragraph } = Typography;
@@ -51,7 +49,7 @@ interface SplashVideoData {
 }
 
 const AppSettings: React.FC = () => {
-    const { admin } = useAuthStore();
+    const { user } = useAuthStore();
     const [form] = Form.useForm();
     const [uploading, setUploading] = useState(false);
     const [validating, setValidating] = useState(false);
@@ -62,7 +60,7 @@ const AppSettings: React.FC = () => {
     const videoRef = useRef<HTMLVideoElement>(null);
 
     // Check if user is Super Admin
-    const isSuperAdmin = admin?.role === 'super_admin';
+    const isSuperAdmin = user?.role === 'super_admin';
 
     /**
      * Validate video file duration and size
@@ -74,7 +72,7 @@ const AppSettings: React.FC = () => {
             let duration = 0;
 
             // 1. Validate file type
-            if (!SPLASH_VIDEO_CONFIG.ACCEPTED_FORMATS.includes(file.type)) {
+            if (!(SPLASH_VIDEO_CONFIG.ACCEPTED_FORMATS as readonly string[]).includes(file.type)) {
                 errors.push('Invalid file format. Please upload an MP4 video.');
             }
 
@@ -188,7 +186,7 @@ const AppSettings: React.FC = () => {
             const response = await fetch('/api/v1/admin/settings/splash-video', {
                 method: 'PUT',
                 headers: {
-                    Authorization: `Bearer ${localStorage.getItem('adminToken')}`,
+                    Authorization: `Bearer ${localStorage.getItem('admin_token')}`,
                 },
                 body: formData,
             });
@@ -227,7 +225,7 @@ const AppSettings: React.FC = () => {
             const response = await fetch('/api/v1/admin/settings/splash-video', {
                 method: 'DELETE',
                 headers: {
-                    Authorization: `Bearer ${localStorage.getItem('adminToken')}`,
+                    Authorization: `Bearer ${localStorage.getItem('admin_token')}`,
                 },
             });
 

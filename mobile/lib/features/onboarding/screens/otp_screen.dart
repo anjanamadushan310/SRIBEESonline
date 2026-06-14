@@ -5,6 +5,7 @@
 /// All strings localized via [languageProvider].
 library;
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -100,16 +101,15 @@ class _OTPScreenState extends ConsumerState<OTPScreen> {
 
     setState(() => _errorText = null);
 
-    if (code.length < 4) {
+    if (code.length != 6) {
       setState(() => _errorText = _t(langCode, 'errorInvalidOtp'));
       return;
     }
 
     setState(() => _loading = true);
 
-    // Temporary mock OTP for development (replace with Notify.lk / real SMS later).
-    const mockOtp = '1234';
-    if (code == mockOtp) {
+    // Debug-only mock OTP — never active in release builds.
+    if (kDebugMode && code == '1234') {
       ref.read(authProvider.notifier).setMockAuthenticated(User.mockUser);
       ref.read(phoneVerificationProvider.notifier).clear();
       if (!mounted) return;
@@ -118,6 +118,7 @@ class _OTPScreenState extends ConsumerState<OTPScreen> {
       return;
     }
 
+    // TODO: verify OTP via Notify.lk / Firebase Auth API call here.
     setState(() {
       _loading = false;
       _errorText = _t(langCode, 'errorVerifyFailed');
