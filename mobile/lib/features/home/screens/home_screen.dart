@@ -10,6 +10,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/providers/language_provider.dart';
+import '../../cart/screens/cart_screen.dart';
 
 const _pink = Color(0xFFB5175A);
 const _pinkLight = Color(0xFFE91E8C);
@@ -212,7 +213,9 @@ class _AppBar extends StatelessWidget {
 
                 // Cart with total price badge
                 GestureDetector(
-                  onTap: () {},
+                  onTap: () => Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => const CartScreen()),
+                  ),
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
