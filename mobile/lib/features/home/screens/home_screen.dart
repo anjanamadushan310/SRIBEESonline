@@ -11,6 +11,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/providers/language_provider.dart';
 import '../../cart/screens/cart_screen.dart';
+import '../../saved/screens/saved_screen.dart';
+import '../../orders/screens/orders_screen.dart';
 
 const _pink = Color(0xFFB5175A);
 const _pinkLight = Color(0xFFE91E8C);
@@ -132,7 +134,18 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       // ── Bottom Nav ────────────────────────────────────────────────────────
       bottomNavigationBar: _BottomNav(
         selected: _selectedNav,
-        onTap: (i) => setState(() => _selectedNav = i),
+        onTap: (i) {
+          setState(() => _selectedNav = i);
+          if (i == 1) {
+            Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const SavedScreen()),
+            ).then((_) => setState(() => _selectedNav = 0));
+          } else if (i == 2) {
+            Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const OrdersScreen()),
+            ).then((_) => setState(() => _selectedNav = 0));
+          }
+        },
       ),
       floatingActionButton: _AICartFab(onTap: () {}),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
