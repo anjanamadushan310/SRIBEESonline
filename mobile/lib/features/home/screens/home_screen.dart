@@ -142,6 +142,19 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     super.dispose();
   }
 
+  void _onNavTap(int i) {
+    setState(() => _selectedNav = i);
+    if (i == 1) {
+      Navigator.of(context)
+          .push(MaterialPageRoute(builder: (_) => const SavedScreen()))
+          .then((_) => setState(() => _selectedNav = 0));
+    } else if (i == 2) {
+      Navigator.of(context)
+          .push(MaterialPageRoute(builder: (_) => const OrdersScreen()))
+          .then((_) => setState(() => _selectedNav = 0));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final cart = ref.watch(cartProvider);
@@ -321,25 +334,39 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         ],
       ),
 
-      // ── Glass Bottom Nav ─────────────────────────────────────────────────
-      bottomNavigationBar: _GlassBottomNav(
-        selected: _selectedNav,
-        onTap: (i) {
-          setState(() => _selectedNav = i);
-          if (i == 1) {
-            Navigator.of(context)
-                .push(MaterialPageRoute(builder: (_) => const SavedScreen()))
-                .then((_) => setState(() => _selectedNav = 0));
-          } else if (i == 2) {
-            Navigator.of(context)
-                .push(MaterialPageRoute(builder: (_) => const OrdersScreen()))
-                .then((_) => setState(() => _selectedNav = 0));
-          }
-        },
+      // ── Bottom Nav (BottomAppBar required for centerDocked FAB) ──────────
+      bottomNavigationBar: BottomAppBar(
+        color: _surfaceLowest,
+        surfaceTintColor: Colors.transparent,
+        elevation: 12,
+        shadowColor: Colors.black26,
+        shape: const CircularNotchedRectangle(),
+        notchMargin: 10,
+        height: 68,
+        padding: EdgeInsets.zero,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: [
+            _NavItem(icon: Icons.home_rounded, label: 'HOME', index: 0, selected: _selectedNav, onTap: _onNavTap),
+            _NavItem(icon: Icons.favorite_border_rounded, label: 'SAVED', index: 1, selected: _selectedNav, onTap: _onNavTap),
+            const SizedBox(width: 60),
+            _NavItem(icon: Icons.receipt_long_outlined, label: 'ORDERS', index: 2, selected: _selectedNav, onTap: _onNavTap),
+            _NavItem(icon: Icons.person_outline_rounded, label: 'PROFILE', index: 3, selected: _selectedNav, onTap: _onNavTap),
+          ],
+        ),
       ),
 
       // ── FAB ──────────────────────────────────────────────────────────────
-      floatingActionButton: _PinkFab(onTap: () {}),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {},
+        backgroundColor: _primary,
+        foregroundColor: Colors.white,
+        elevation: 6,
+        shape: CircleBorder(
+          side: BorderSide(color: _surface, width: 4),
+        ),
+        child: const Icon(Icons.auto_awesome_rounded, size: 26),
+      ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
     );
   }
@@ -785,76 +812,8 @@ class _DealCard extends StatelessWidget {
 }
 
 // ---------------------------------------------------------------------------
-// Glass Bottom Nav
+// Nav Item
 // ---------------------------------------------------------------------------
-
-class _GlassBottomNav extends StatelessWidget {
-  final int selected;
-  final ValueChanged<int> onTap;
-  const _GlassBottomNav({required this.selected, required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    return ClipRRect(
-      borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-        child: Container(
-          decoration: BoxDecoration(
-            color: _surface.withValues(alpha: 0.85),
-            boxShadow: [
-              BoxShadow(
-                color: const Color(0xFF1B1C1D).withValues(alpha: 0.04),
-                blurRadius: 40,
-                offset: const Offset(0, -10),
-              ),
-            ],
-          ),
-          child: SafeArea(
-            top: false,
-            child: SizedBox(
-              height: 62,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  _NavItem(
-                    icon: Icons.home_rounded,
-                    label: 'HOME',
-                    index: 0,
-                    selected: selected,
-                    onTap: onTap,
-                  ),
-                  _NavItem(
-                    icon: Icons.favorite_border_rounded,
-                    label: 'SAVED',
-                    index: 1,
-                    selected: selected,
-                    onTap: onTap,
-                  ),
-                  const SizedBox(width: 56), // FAB space
-                  _NavItem(
-                    icon: Icons.receipt_long_outlined,
-                    label: 'ORDERS',
-                    index: 2,
-                    selected: selected,
-                    onTap: onTap,
-                  ),
-                  _NavItem(
-                    icon: Icons.person_outline_rounded,
-                    label: 'PROFILE',
-                    index: 3,
-                    selected: selected,
-                    onTap: onTap,
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
 
 class _NavItem extends StatelessWidget {
   final IconData icon;
@@ -903,40 +862,3 @@ class _NavItem extends StatelessWidget {
   }
 }
 
-// ---------------------------------------------------------------------------
-// Pink FAB (elevated, white border)
-// ---------------------------------------------------------------------------
-
-class _PinkFab extends StatelessWidget {
-  final VoidCallback onTap;
-  const _PinkFab({required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: 60,
-        height: 60,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          gradient: const LinearGradient(
-            colors: [_primary, _primary],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-          border: Border.all(color: _surface, width: 4),
-          boxShadow: [
-            BoxShadow(
-              color: _primary.withValues(alpha: 0.45),
-              blurRadius: 16,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        child: const Icon(Icons.auto_awesome_rounded,
-            color: Colors.white, size: 26),
-      ),
-    );
-  }
-}
