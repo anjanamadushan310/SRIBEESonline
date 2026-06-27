@@ -1,371 +1,67 @@
-/// SRIBEESonline - Home Screen
+/// SRIBEESonline - Main shell + Home tab
 ///
-/// Implements "The Radiant Editorial" design system (DESIGN.md):
-///   Primary #D81B60 · Surface #fbf9fb · Plus Jakarta Sans headlines
-///
-/// Layout:
-///   AppBar   → pink, rounded-b-3xl, logo image + cart count badge
-///   Search   → sticky below AppBar, frosted pill input
-///   Body     → hero banner carousel · shop-by-category row · today's deals grid
-///   NavBar   → frosted glass, white bg · HOME|SAVED|[FAB]|ORDERS|PROFILE
-///   FAB      → pink gradient, elevated, white border
+/// `HomeScreen` is the app's tabbed shell (Home / Saved / Orders / Profile)
+/// matching the "SRIBEES Online" prototype: a shared magenta header and white
+/// bottom nav with a center sparkle FAB stay fixed while the body switches
+/// between tab bodies (IndexedStack keeps each tab's state). Cart and Product
+/// open as pushed routes on top of the shell.
 library;
-
-import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/design/sribees_design.dart';
 import '../../../core/providers/cart_provider.dart';
 import '../../cart/screens/cart_screen.dart';
 import '../../orders/screens/orders_screen.dart';
+import '../../products/screens/product_details_screen.dart';
+import '../../profile/screens/profile_screen.dart';
 import '../../saved/screens/saved_screen.dart';
 
 // ---------------------------------------------------------------------------
-// Design tokens
-// ---------------------------------------------------------------------------
-const _primary = Color(0xFFD81B60);
-const _surface = Color(0xFFFBF9FB);
-const _surfaceLow = Color(0xFFF5F3F5);
-const _surfaceLowest = Color(0xFFFFFFFF);
-const _onSurface = Color(0xFF1B1C1D);
-const _onSurfaceVariant = Color(0xFF564149);
-
-// ---------------------------------------------------------------------------
-// Image CDN base paths (from design HTML)
-// ---------------------------------------------------------------------------
-const _aidaBase = 'https://lh3.googleusercontent.com/aida/';
-const _aidaPubBase = 'https://lh3.googleusercontent.com/aida-public/';
-
-// ---------------------------------------------------------------------------
-// Data models
-// ---------------------------------------------------------------------------
-class _Category {
-  final String name;
-  final String imageUrl;
-  const _Category(this.name, this.imageUrl);
-}
-
-class _Deal {
-  final String name;
-  final double price;
-  final String imageUrl;
-  const _Deal(this.name, this.price, this.imageUrl);
-}
-
-class _Banner {
-  final String imageUrl;
-  final String title;
-  final String subtitle;
-  const _Banner(this.imageUrl, this.title, this.subtitle);
-}
-
-// ---------------------------------------------------------------------------
-// Static data (mirrors the design HTML exactly)
-// ---------------------------------------------------------------------------
-final _categories = [
-  const _Category('Agro',
-      '${_aidaBase}AP1WRLsHmAQY-S7bClho9R9Rz5AJJc_benkcWCIYNnnodEyb4MF56ao3uE2xOnkljUM0yGFVTuywee8ZhasxLxFWQS6MFnwArlFVOqNOyL7e74ggZymQ4gihRKWpIQFPGvtXDyG7RPYzLMC8SkkOzCz9XYTniNF-zYalvOaxvIWSYIan9A2ZCc5SfNRrTleIzTTGjKh5OPlIP0mqZQnTTCJ9mSAhUgdcM_eGr2dQHUXp-Tc9_uiJAPeplygZpWs'),
-  const _Category('Groceries',
-      '${_aidaBase}AP1WRLvSYbvYNVClPhfCGv3mdwxMCBNqyVXnX-w24DwGpTQKmxPUcv365YXCqPctqzGGYWYuTIOJykOW5xAJGLA48AnV_LXrtTvIW_TZHzpoIGnE1rvXSzXb6wukuo8hp3OzTTxasj7cr_EO4kmdvWpz6EeVmjegWrm0_k3QuLaDT6-QQHCBDQD49_f-clKepa_OWFSbofz1lzYn_TilsYtiSreI9jNfV1emyIEdaBzjorV8BzRkeULLUKVbkg'),
-  const _Category('Electronics',
-      '${_aidaBase}AP1WRLt_t4qtnpTN4CctzJ2EHLxsvl7O3NJ2jhUadE2Vzk979zwmluz5iQwKnWN6ABPpTAlRgiD_WmHT8s_cG5m4tCPAz7aDxFWWG4vgVFNtt7vkq0jy6FZQys6mpwhxW2iQKhh6V7JEm2aHSuGDx1OIgku3pQwFNtbXPDiS4-kHq9HZEMv1RZ2-C98pxPuDbClw7iEFP35sAi4IWE2kUP21Kx8HYqLjvoBd-pja-ByLuoSacuRiuzGDQz4a_ew'),
-  const _Category('Express',
-      '${_aidaBase}AP1WRLs12JuZ8yGhsJgJOyrYFDYEzOb41xyERq5R2Xsrb92ztPhipZHVtWsxPEGgx1Cfiks-E2dG-_UW2cTv_hTWvfT6l7ghv9U-gdwoW6_SwPcXj9ToovqtOzJihTnAE67VGb0bOeBesib-B58ChcGBv2j_k6Uccin8OgJQYzYyi3VMLv7QE3fOXCtqvb7flPHwOpUQKdPSciR1MZ8--5f9G0Fdy0gq-AxlTi7T701Qs6gclpLlkBVpu0GszKA'),
-  const _Category('Meat',
-      '${_aidaBase}AP1WRLvimFWdDn6SiML37wzcyXqk0TGgLRcYN_HG1_2o-lEXxSaGXWGK00_fakQXxD3TAWSfoOFq90Im1X2FHEwo1f40SAnIeWcf106sLrh1UAaN_b9mb4h_LULDtmlggvwiJspbhw1sUpd7MvnXab3l5Kti4-yBoy6Cpwrm90EZkT8wWtu3Tvabf_rhGygbjGXUDefgxe-QISZFwaATaH2OhAR0VTSh9w7dh696Ab_pYhI6OBQLpajcBaqv3Pg'),
-  const _Category('Seafood',
-      '${_aidaBase}AP1WRLv27SVyh5TfYFNBvIV9dzroSzBdht5WhU4A1kQjqLZ60JEIqdXChLqA1mq3W0ThtKZ2d68FkDC4y_jRUys2egFs34mZkmX2YwnEYUUVdjMGtOrNW87vFToFBU6eNBMr8IRLt-IJfx83_dlwmBqjUnyCmpCJ1MglEqknG4_8jzmjbRl5ywezPu7Bj_ksVubg5AOHNsj4p-kHnRAkX-ghAiDmX-eJ81w5U8rq2oUjd7zoU4GbJQSLxchQfhk'),
-  const _Category('Bakery',
-      '${_aidaBase}AP1WRLuSG8eM58FOoC4KSg2GJjsvTYhQnckIRbu_Z03JLOLcJDlLZXei2n-1woUdeeOo-85weIiX5698k8t8zcEp1yt-aVxDTNRufbeNV691YbR3V76sB_xvw6bbx2X5kgOwHIy7VH327zaBYoDU7kNKOGm4WIglncBRazEsjshmQYd8h4CtxAmdWKJR_IO9hkYpYUHiyQp-WN_k_uX8HdXxx9Z6z-oKe2TN8QgWIJ3leB7JzVxqnTfkgW1oZks'),
-  const _Category('Household',
-      '${_aidaBase}AP1WRLs1mhJVCjzOjw68tNSMiahXuhl56d3ScL0PcakS-U6jUva4rd1bm-7rPqsY10rMwH_bm-h_pxI8afDvn9ze5axw8A8gDcJaXS8OPBe6Wkbrv5M_n3z0xjGqgyr3L6eClvu0fZTph07DJeWOEHgGxqtyFMh2Wr-ymBphCg4ggIZOzAa31miG3zHjlkg-wRn2O1V83OhKcnHQdFgOevaRuOU9n2Db3kSVY6dDRULjL4Szxu6hmtLeY4iua-Q'),
-  const _Category('Beverages',
-      '${_aidaBase}AP1WRLukujTkZ0sYITBQBhIGSM13LJYwAuNLlLw1N8zaSrjeN-fZfsQDNsqDiJnSTlJdC-d43oKXWB0xV7K4DbmRcgFRQ3zHHiqckvpuBSRxHlNwndObhc1plfUsk6M3pMKBCXluQEFJSJUTyS1GSc8a0ySVTXIZ8FGJ0dczSvEbcTK063G174REVJHhP4gzHSrReSMp3FRpOqlMa2dz-hf4TcqDv3OGgPkLVH-w1uGC-xKNK5HcoRvp7O2Szw'),
-];
-
-final _deals = [
-  const _Deal('Organic Bananas', 900,
-      '${_aidaPubBase}AB6AXuAhB77Bhd9QvJSKQMsizV9Jd_0UdoH0uoHkBNQgH_t6fhqH74U3o_beMGkftcyjiuLJiDWMADg1LrE_tgrgisNrurzIMeUXI09GIp-AgNrZQmdLUxKiqiaeyjH9Hp0jn6h0wZ5GSzoFeTRaZ5x1nvf06XV6BfNUVnq9w4LBwNnzisAisogWoElHhkbp_jZHQor42e7xA8GYltRNDlVIZXvBvXY71URYvWtqGqLkeL9bcwrQwLyJJadLwWkv24WrgZlO-MyKvw3PTC0'),
-  const _Deal('Fuji Apples', 1350,
-      '${_aidaPubBase}AB6AXuCqjBvYlqyHAC3JV8mIC63XRVFr5xUW6BslO4IMWIiJiCBN_rnuJwUyyJz7r4xAClpOMKuf51Zo932f1SIeLg6pvl0CHgqHuxCFEr8-WTX4KmZ-OD9-fAZzeR4SXiVMCdYJdpnc7cLQPwBMIU1A0z6u5kghO27HLKkKdhV-0BXky2bOGKnatrxy0grkXcsALqiBG19VGH2AURONXJKYwO5ZjT_FHUrRY3dLGCWHTpqr_fOzCfRHO5IAcAda4BLpcIBSI2JCxOZ1jzg'),
-  const _Deal('Fresh Broccoli', 600,
-      '${_aidaPubBase}AB6AXuD6ZdB8OUk8DSLJtHXLw7SJU9T4P_9AiNujHubinVi4yXwDRJbDyL8AYuBX1fGE-EQ_4YbEARA2QSe5WIfDa1bOotcH-TLTxfVgZukBZp9OZVYIbK13UHRK6YxsI-iq4t--0dhElF7BdULtgbfrMIuwcQfxD6gIBwikBG5eIb-bztt73DMASc_pl5nU1hK1VmvmhJNBk_PXjo4KkIYbhwbMBQy9wer5rI9eyC-k7ciJrgibgorYW_ofbfpQ1wS5VS0kpkEEf2iTL9Y'),
-  const _Deal('Fresh Spinach', 450,
-      '${_aidaPubBase}AB6AXuCP1kXVhZUAuylApGNgWcjcvdiCu794KVOdSr6NV8s9zuHkmxqZlGle4Ma2MoobL7TrsfOKIiug597qrTOhD5x_kC_QzhKhMrUii8GfjRBG4W5ys39Y5kEQWWeFEFMENySoBpR8W9rVhPCkwILDnqxQfGQZqIbhC22_scdAZsMmt1Upcbsv1lAJ-o9OKTfzfI23G6tvwDqYGSC6wNsiscwGnHOUtA09SJTV7pcHerXtzyTA6pRo2xKeBfnb1l7CF02rFuL0RH2XFbQ'),
-];
-
-final _banners = [
-  const _Banner(
-    '${_aidaPubBase}AB6AXuCP1kXVhZUAuylApGNgWcjcvdiCu794KVOdSr6NV8s9zuHkmxqZlGle4Ma2MoobL7TrsfOKIiug597qrTOhD5x_kC_QzhKhMrUii8GfjRBG4W5ys39Y5kEQWWeFEFMENySoBpR8W9rVhPCkwILDnqxQfGQZqIbhC22_scdAZsMmt1Upcbsv1lAJ-o9OKTfzfI23G6tvwDqYGSC6wNsiscwGnHOUtA09SJTV7pcHerXtzyTA6pRo2xKeBfnb1l7CF02rFuL0RH2XFbQ',
-    'Fresh Farm Produce',
-    'Delivered straight to you.',
-  ),
-  const _Banner(
-    '${_aidaPubBase}AB6AXuAhB77Bhd9QvJSKQMsizV9Jd_0UdoH0uoHkBNQgH_t6fhqH74U3o_beMGkftcyjiuLJiDWMADg1LrE_tgrgisNrurzIMeUXI09GIp-AgNrZQmdLUxKiqiaeyjH9Hp0jn6h0wZ5GSzoFeTRaZ5x1nvf06XV6BfNUVnq9w4LBwNnzisAisogWoElHhkbp_jZHQor42e7xA8GYltRNDlVIZXvBvXY71URYvWtqGqLkeL9bcwrQwLyJJadLwWkv24WrgZlO-MyKvw3PTC0',
-    'Best Deals Today',
-    'Up to 20% off on fresh produce.',
-  ),
-  const _Banner(
-    '${_aidaPubBase}AB6AXuD6ZdB8OUk8DSLJtHXLw7SJU9T4P_9AiNujHubinVi4yXwDRJbDyL8AYuBX1fGE-EQ_4YbEARA2QSe5WIfDa1bOotcH-TLTxfVgZukBZp9OZVYIbK13UHRK6YxsI-iq4t--0dhElF7BdULtgbfrMIuwcQfxD6gIBwikBG5eIb-bztt73DMASc_pl5nU1hK1VmvmhJNBk_PXjo4KkIYbhwbMBQy9wer5rI9eyC-k7ciJrgibgorYW_ofbfpQ1wS5VS0kpkEEf2iTL9Y',
-    'Fast Delivery',
-    'Get groceries in 60 minutes.',
-  ),
-];
-
-// Logo URL from design HTML
-const _logoUrl =
-    '${_aidaPubBase}AB6AXuD_hqjBjp2VTTu7W9TgtEivFRjmvJkPOgmm1C_1THofMvtOww25PmbILUR07D3CNniMda_AKbhf_S0Zt6D0RJrK7HyoEPgXzaIbkTWWGOYxmztAy95Ztdgdb8K5kgEd0PmxSuPYSu2SapOr8E8BghjO0NT5VxYIFEZCoPiXwLN9W0l1Quqj9nc3V7fW0IWoJ-MOSMOP2FRwA1ODgXW-wcqsdnbprXaqZP0Ne1njvaXbdtmmGlqdj7zntVr_e0GqeAHOOtchbPZ9r7c';
-
-// ---------------------------------------------------------------------------
-// Home Screen
+// Shell
 // ---------------------------------------------------------------------------
 
-class HomeScreen extends ConsumerStatefulWidget {
+class HomeScreen extends ConsumerWidget {
   final String? branchName;
   const HomeScreen({super.key, this.branchName});
 
-  @override
-  ConsumerState<HomeScreen> createState() => _HomeScreenState();
-}
-
-class _HomeScreenState extends ConsumerState<HomeScreen> {
-  final _searchController = TextEditingController();
-  final _pageController = PageController();
-  int _bannerPage = 0;
-  int _selectedNav = 0;
-
-  @override
-  void dispose() {
-    _searchController.dispose();
-    _pageController.dispose();
-    super.dispose();
-  }
-
-  void _onNavTap(int i) {
-    setState(() => _selectedNav = i);
-    if (i == 1) {
-      Navigator.of(context)
-          .push(MaterialPageRoute(builder: (_) => const SavedScreen()))
-          .then((_) => setState(() => _selectedNav = 0));
-    } else if (i == 2) {
-      Navigator.of(context)
-          .push(MaterialPageRoute(builder: (_) => const OrdersScreen()))
-          .then((_) => setState(() => _selectedNav = 0));
-    }
+  void _openCart(BuildContext context) {
+    Navigator.of(context)
+        .push(MaterialPageRoute(builder: (_) => const CartScreen()));
   }
 
   @override
-  Widget build(BuildContext context) {
-    final cart = ref.watch(cartProvider);
-    final cartCount = cart.itemCount;
-    final cartTotal = cart.items.fold<double>(0, (s, i) => s + i.price * i.quantity);
+  Widget build(BuildContext context, WidgetRef ref) {
+    final tab = ref.watch(mainTabProvider);
 
     return Scaffold(
-      backgroundColor: _surface,
-      // ── AppBar ──────────────────────────────────────────────────────────
-      appBar: AppBar(
-        backgroundColor: _primary,
-        surfaceTintColor: Colors.transparent,
-        elevation: 4,
-        shadowColor: Colors.black26,
-        toolbarHeight: 60,
-        shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(bottom: Radius.circular(24)),
-        ),
-        automaticallyImplyLeading: false,
-        titleSpacing: 0,
-        title: Row(
-          children: [
-            // Hamburger
-            IconButton(
-              icon: const Icon(Icons.menu_rounded, color: Colors.white, size: 26),
-              onPressed: () {},
-              padding: const EdgeInsets.only(left: 8),
-            ),
-            const SizedBox(width: 4),
-            // Logo
-            Expanded(
-              child: Center(
-                child: Image.network(
-                  _logoUrl,
-                  height: 26,
-                  fit: BoxFit.contain,
-                  errorBuilder: (_, __, ___) => const Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text('SRIBEES',
-                          style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 20,
-                              fontWeight: FontWeight.w900,
-                              letterSpacing: 1.5)),
-                      SizedBox(width: 4),
-                      Text('Online',
-                          style: TextStyle(
-                              color: Colors.white70,
-                              fontSize: 14,
-                              fontWeight: FontWeight.w500)),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          // Cart badge + price
-          GestureDetector(
-            onTap: () => Navigator.of(context).push(
-              MaterialPageRoute(builder: (_) => const CartScreen()),
-            ),
-            child: Container(
-              margin: const EdgeInsets.only(right: 12),
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.2),
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  // Cart icon with count badge
-                  Stack(
-                    clipBehavior: Clip.none,
-                    children: [
-                      const Icon(Icons.shopping_cart_rounded,
-                          color: Colors.white, size: 20),
-                      if (cartCount > 0)
-                        Positioned(
-                          top: -6,
-                          right: -6,
-                          child: Container(
-                            width: 16,
-                            height: 16,
-                            decoration: const BoxDecoration(
-                              color: Colors.white,
-                              shape: BoxShape.circle,
-                            ),
-                            child: Center(
-                              child: Text(
-                                '$cartCount',
-                                style: const TextStyle(
-                                  color: _primary,
-                                  fontSize: 8,
-                                  fontWeight: FontWeight.w900,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                    ],
-                  ),
-                  const SizedBox(width: 6),
-                  Text(
-                    'Rs${cartTotal.toStringAsFixed(2)}',
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
-
-      // ── Body ────────────────────────────────────────────────────────────
+      backgroundColor: kBg,
       body: Column(
         children: [
-          // Sticky search bar
-          _SearchBar(controller: _searchController),
-
-          // Scrollable content
+          SribeesHeader(
+            onMenu: () => showToast(context, 'Menu'),
+            onCart: () => _openCart(context),
+          ),
           Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const SizedBox(height: 8),
-
-                  // Hero banner carousel
-                  _HeroBanner(
-                    banners: _banners,
-                    controller: _pageController,
-                    currentPage: _bannerPage,
-                    onPageChanged: (p) => setState(() => _bannerPage = p),
-                  ),
-                  const SizedBox(height: 28),
-
-                  // Shop by Category
-                  _SectionTitle('Shop by Category'),
-                  const SizedBox(height: 16),
-                  _CategoryRow(categories: _categories),
-                  const SizedBox(height: 28),
-
-                  // Today's Deals
-                  _SectionTitle("Today's Deals"),
-                  const SizedBox(height: 16),
-                  _DealsGrid(
-                    deals: _deals,
-                    onAdd: (deal) {
-                      ref.read(cartProvider.notifier).addItem(
-                            productId: deal.name.hashCode.toString(),
-                            price: deal.price,
-                            name: deal.name,
-                            imageUrl: deal.imageUrl,
-                          );
-                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                        content: Text('${deal.name} added to cart'),
-                        backgroundColor: _primary,
-                        duration: const Duration(seconds: 1),
-                        behavior: SnackBarBehavior.floating,
-                      ));
-                    },
-                  ),
-                  const SizedBox(height: 100),
-                ],
-              ),
+            child: IndexedStack(
+              index: tab,
+              children: const [
+                _HomeTab(),
+                SavedTab(),
+                OrdersTab(),
+                ProfileTab(),
+              ],
             ),
           ),
         ],
       ),
-
-      // ── Bottom Nav (BottomAppBar required for centerDocked FAB) ──────────
-      bottomNavigationBar: BottomAppBar(
-        color: _surfaceLowest,
-        surfaceTintColor: Colors.transparent,
-        elevation: 12,
-        shadowColor: Colors.black26,
-        shape: const CircularNotchedRectangle(),
-        notchMargin: 10,
-        height: 68,
-        padding: EdgeInsets.zero,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: [
-            _NavItem(icon: Icons.home_rounded, label: 'HOME', index: 0, selected: _selectedNav, onTap: _onNavTap),
-            _NavItem(icon: Icons.favorite_border_rounded, label: 'SAVED', index: 1, selected: _selectedNav, onTap: _onNavTap),
-            const SizedBox(width: 60),
-            _NavItem(icon: Icons.receipt_long_outlined, label: 'ORDERS', index: 2, selected: _selectedNav, onTap: _onNavTap),
-            _NavItem(icon: Icons.person_outline_rounded, label: 'PROFILE', index: 3, selected: _selectedNav, onTap: _onNavTap),
-          ],
-        ),
+      bottomNavigationBar: SribeesBottomNav(
+        selected: tab,
+        onTap: (i) => ref.read(mainTabProvider.notifier).state = i,
       ),
-
-      // ── FAB ──────────────────────────────────────────────────────────────
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {},
-        backgroundColor: _primary,
-        foregroundColor: Colors.white,
-        elevation: 6,
-        shape: CircleBorder(
-          side: BorderSide(color: _surface, width: 4),
-        ),
-        child: const Icon(Icons.auto_awesome_rounded, size: 26),
+      floatingActionButton: SribeesSparkleFab(
+        onTap: () => showToast(context, '✨ AI shopping assistant'),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
     );
@@ -373,48 +69,168 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 }
 
 // ---------------------------------------------------------------------------
-// Search Bar (sticky below AppBar)
+// Deal data (gradient placeholders, mirrors the prototype)
 // ---------------------------------------------------------------------------
 
-class _SearchBar extends StatelessWidget {
-  final TextEditingController controller;
-  const _SearchBar({required this.controller});
+class _Deal {
+  final String key;
+  final String name;
+  final double price;
+  final String unit;
+  final String rating;
+  const _Deal(this.key, this.name, this.price, this.unit, this.rating);
+}
+
+const _deals = <_Deal>[
+  _Deal('bananas', 'Organic Bananas', 900, '1kg · Fresh from farm', '4.8'),
+  _Deal('apples', 'Fuji Apples', 1350, 'Pack of 4 · Crisp & sweet', '4.9'),
+  _Deal('broccoli', 'Fresh Broccoli', 600, '500g · Farm picked', '4.7'),
+  _Deal('spinach', 'Fresh Spinach', 450, '250g · Pesticide free', '4.8'),
+];
+
+class _Category {
+  final String name;
+  final IconData icon;
+  final Color iconColor;
+  final Color a;
+  final Color b;
+  const _Category(this.name, this.icon, this.iconColor, this.a, this.b);
+}
+
+const _categories = <_Category>[
+  _Category('Agro', Icons.eco_outlined, Color(0xFF3F7A2C), Color(0xFFCFE8C0),
+      Color(0xFFA6D68F)),
+  _Category('Groceries', Icons.shopping_bag_outlined, Color(0xFFA06B1A),
+      Color(0xFFF2DCB4), Color(0xFFE3BF80)),
+  _Category('Electronics', Icons.devices_other_outlined, Color(0xFF4A5A72),
+      Color(0xFFCDD6E2), Color(0xFFA5B2C4)),
+  _Category('Express', Icons.delivery_dining_outlined, kMagenta,
+      Color(0xFFFBD9E6), Color(0xFFF4B3CD)),
+  _Category('Meat', Icons.kebab_dining_outlined, Color(0xFFB0463F),
+      Color(0xFFF0C0BD), Color(0xFFDD8E88)),
+];
+
+class _Banner {
+  final String title;
+  final String subtitle;
+  final Color a;
+  final Color b;
+  const _Banner(this.title, this.subtitle, this.a, this.b);
+}
+
+const _banners = <_Banner>[
+  _Banner('Fresh Farm Produce', 'Delivered straight to you.', Color(0xFF7A4A2C),
+      Color(0xFFD68A3C)),
+  _Banner('20% Off Greens', 'This weekend only.', Color(0xFF5A7A3C),
+      Color(0xFF9BBF5C)),
+  _Banner('Earn 10% Cash Back', 'On every single order.', Color(0xFF8A3A4C),
+      Color(0xFFC5607A)),
+];
+
+// ---------------------------------------------------------------------------
+// Home tab body
+// ---------------------------------------------------------------------------
+
+class _HomeTab extends ConsumerStatefulWidget {
+  const _HomeTab();
+
+  @override
+  ConsumerState<_HomeTab> createState() => _HomeTabState();
+}
+
+class _HomeTabState extends ConsumerState<_HomeTab> {
+  final _pageController = PageController();
+  int _bannerPage = 0;
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  void _addDeal(_Deal d) {
+    ref.read(cartProvider.notifier).addItem(
+          productId: d.key,
+          price: d.price,
+          name: d.name,
+        );
+    showToast(context, '${d.name} added to cart');
+  }
+
+  void _openProduct(_Deal d) {
+    Navigator.of(context).push(MaterialPageRoute(
+      builder: (_) => ProductDetailsScreen(
+        productKey: d.key,
+        name: d.name,
+        unit: d.unit,
+        price: d.price,
+        rating: d.rating,
+      ),
+    ));
+  }
 
   @override
   Widget build(BuildContext context) {
-    return ClipRect(
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-        child: Container(
-          color: _surface.withValues(alpha: 0.85),
-          padding: const EdgeInsets.fromLTRB(16, 10, 16, 10),
-          child: TextField(
-            controller: controller,
-            decoration: InputDecoration(
-              hintText: 'Search for.......',
-              hintStyle: const TextStyle(color: _onSurfaceVariant, fontSize: 14),
-              prefixIcon: const Icon(Icons.search_rounded,
-                  color: _onSurfaceVariant, size: 22),
-              filled: true,
-              fillColor: _surfaceLowest,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(999),
-                borderSide: BorderSide.none,
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(999),
-                borderSide: BorderSide.none,
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(999),
-                borderSide: const BorderSide(color: _primary, width: 2),
-              ),
-              contentPadding:
-                  const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-              isDense: false,
+    return SingleChildScrollView(
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _SearchPill(onTap: () => showToast(context, 'Search')),
+          const SizedBox(height: 22),
+          _BannerCarousel(
+            controller: _pageController,
+            page: _bannerPage,
+            onPageChanged: (p) => setState(() => _bannerPage = p),
+            onDot: (i) => _pageController.animateToPage(
+              i,
+              duration: const Duration(milliseconds: 450),
+              curve: Curves.easeOutCubic,
             ),
-            style: const TextStyle(fontSize: 14, color: _onSurface),
+            onShop: () => showToast(context, 'Browse today’s deals below'),
           ),
+          const SizedBox(height: 26),
+          const _SectionTitle('Shop by Category'),
+          const SizedBox(height: 16),
+          _CategoryRow(onTap: (c) => showToast(context, '${c.name} category')),
+          const SizedBox(height: 30),
+          const _SectionTitle("Today's Deals"),
+          const SizedBox(height: 16),
+          _DealsGrid(onAdd: _addDeal, onOpen: _openProduct),
+        ],
+      ),
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Search pill
+// ---------------------------------------------------------------------------
+
+class _SearchPill extends StatelessWidget {
+  final VoidCallback onTap;
+  const _SearchPill({required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
+        decoration: BoxDecoration(
+          color: kCard,
+          borderRadius: BorderRadius.circular(30),
+          border: Border.all(color: kBorder, width: 1.5),
+          boxShadow: cardShadow(opacity: 0.10),
+        ),
+        child: Row(
+          children: const [
+            Icon(Icons.search_rounded, color: Color(0xFF9B97A1), size: 22),
+            SizedBox(width: 11),
+            Text('Search for.......',
+                style: TextStyle(color: kPlaceholder, fontSize: 15)),
+          ],
         ),
       ),
     );
@@ -422,7 +238,7 @@ class _SearchBar extends StatelessWidget {
 }
 
 // ---------------------------------------------------------------------------
-// Section Title
+// Section title
 // ---------------------------------------------------------------------------
 
 class _SectionTitle extends StatelessWidget {
@@ -434,9 +250,9 @@ class _SectionTitle extends StatelessWidget {
     return Text(
       text,
       style: const TextStyle(
-        fontSize: 20,
+        fontSize: 22,
         fontWeight: FontWeight.w800,
-        color: _onSurface,
+        color: kInk,
         letterSpacing: -0.3,
       ),
     );
@@ -444,140 +260,136 @@ class _SectionTitle extends StatelessWidget {
 }
 
 // ---------------------------------------------------------------------------
-// Hero Banner Carousel
+// Banner carousel
 // ---------------------------------------------------------------------------
 
-class _HeroBanner extends StatelessWidget {
-  final List<_Banner> banners;
+class _BannerCarousel extends StatelessWidget {
   final PageController controller;
-  final int currentPage;
+  final int page;
   final ValueChanged<int> onPageChanged;
+  final ValueChanged<int> onDot;
+  final VoidCallback onShop;
 
-  const _HeroBanner({
-    required this.banners,
+  const _BannerCarousel({
     required this.controller,
-    required this.currentPage,
+    required this.page,
     required this.onPageChanged,
+    required this.onDot,
+    required this.onShop,
   });
 
   @override
   Widget build(BuildContext context) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(16),
-      child: SizedBox(
-        height: 180,
-        child: Stack(
-          children: [
-            // Slides
-            PageView.builder(
+    return Column(
+      children: [
+        ClipRRect(
+          borderRadius: BorderRadius.circular(18),
+          child: SizedBox(
+            height: 160,
+            child: PageView.builder(
               controller: controller,
               onPageChanged: onPageChanged,
-              itemCount: banners.length,
-              itemBuilder: (_, i) => _BannerSlide(banner: banners[i]),
+              itemCount: _banners.length,
+              itemBuilder: (_, i) =>
+                  _BannerSlide(banner: _banners[i], onShop: onShop),
             ),
-            // Dots
-            Positioned(
-              bottom: 10,
-              left: 0,
-              right: 0,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: List.generate(banners.length, (i) {
-                  final active = i == currentPage;
-                  return AnimatedContainer(
-                    duration: const Duration(milliseconds: 250),
-                    margin: const EdgeInsets.symmetric(horizontal: 3),
-                    width: active ? 20 : 7,
-                    height: 7,
-                    decoration: BoxDecoration(
-                      color: active
-                          ? Colors.white
-                          : Colors.white.withValues(alpha: 0.5),
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                  );
-                }),
-              ),
-            ),
-          ],
+          ),
         ),
-      ),
+        const SizedBox(height: 14),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: List.generate(_banners.length, (i) {
+            final active = i == page;
+            return GestureDetector(
+              onTap: () => onDot(i),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 300),
+                margin: const EdgeInsets.symmetric(horizontal: 3.5),
+                height: 6,
+                width: active ? 20 : 6,
+                decoration: BoxDecoration(
+                  color: active ? kMagenta : const Color(0xFFD7D3DC),
+                  borderRadius: BorderRadius.circular(3),
+                ),
+              ),
+            );
+          }),
+        ),
+      ],
     );
   }
 }
 
 class _BannerSlide extends StatelessWidget {
   final _Banner banner;
-  const _BannerSlide({required this.banner});
+  final VoidCallback onShop;
+  const _BannerSlide({required this.banner, required this.onShop});
 
   @override
   Widget build(BuildContext context) {
     return Stack(
       fit: StackFit.expand,
       children: [
-        // Background image
-        Image.network(
-          banner.imageUrl,
-          fit: BoxFit.cover,
-          errorBuilder: (_, __, ___) => Container(
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                colors: [Color(0xFF1B5E20), Color(0xFF4CAF50)],
-              ),
-            ),
-          ),
-        ),
-        // Gradient overlay (left to right, dark to transparent — matches HTML)
-        Container(
+        DecoratedBox(
+            decoration: BoxDecoration(gradient: swatch(banner.a, banner.b))),
+        DecoratedBox(
           decoration: BoxDecoration(
             gradient: LinearGradient(
               begin: Alignment.centerLeft,
               end: Alignment.centerRight,
               colors: [
-                const Color(0xFF1B1C1D).withValues(alpha: 0.80),
-                Colors.transparent,
+                const Color(0xFF32190A).withValues(alpha: 0.6),
+                const Color(0xFF32190A).withValues(alpha: 0.0),
               ],
+              stops: const [0.0, 0.68],
             ),
           ),
         ),
-        // Text + CTA
         Padding(
-          padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+          padding: const EdgeInsets.fromLTRB(20, 22, 20, 20),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text(
-                banner.title,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 22,
-                  fontWeight: FontWeight.w800,
-                  height: 1.15,
+              SizedBox(
+                width: 200,
+                child: Text(
+                  banner.title,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 27,
+                    fontWeight: FontWeight.w800,
+                    height: 1.05,
+                    shadows: [
+                      Shadow(
+                          color: Color(0x4D000000),
+                          blurRadius: 8,
+                          offset: Offset(0, 2)),
+                    ],
+                  ),
                 ),
               ),
               const SizedBox(height: 6),
               Text(
                 banner.subtitle,
                 style: TextStyle(
-                  color: Colors.white.withValues(alpha: 0.9),
-                  fontSize: 13,
-                ),
+                    color: Colors.white.withValues(alpha: 0.92), fontSize: 14),
               ),
-              const SizedBox(height: 14),
-              ElevatedButton(
-                onPressed: () {},
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: _primary,
-                  foregroundColor: Colors.white,
-                  shape: const StadiumBorder(),
-                  elevation: 0,
+              const Spacer(),
+              GestureDetector(
+                onTap: onShop,
+                child: Container(
                   padding:
-                      const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-                  textStyle: const TextStyle(
-                      fontSize: 14, fontWeight: FontWeight.w600),
+                      const EdgeInsets.symmetric(horizontal: 22, vertical: 9),
+                  decoration: BoxDecoration(
+                      color: kMagenta, borderRadius: BorderRadius.circular(22)),
+                  child: const Text(
+                    'Shop Now',
+                    style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w800),
+                  ),
                 ),
-                child: const Text('Shop Now'),
               ),
             ],
           ),
@@ -588,106 +400,91 @@ class _BannerSlide extends StatelessWidget {
 }
 
 // ---------------------------------------------------------------------------
-// Category Row
+// Category row
 // ---------------------------------------------------------------------------
 
 class _CategoryRow extends StatelessWidget {
-  final List<_Category> categories;
-  const _CategoryRow({required this.categories});
+  final ValueChanged<_Category> onTap;
+  const _CategoryRow({required this.onTap});
 
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: 92,
+      height: 98,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 0),
-        itemCount: categories.length,
-        separatorBuilder: (_, __) => const SizedBox(width: 20),
-        itemBuilder: (_, i) => _CategoryTile(category: categories[i]),
-      ),
-    );
-  }
-}
-
-class _CategoryTile extends StatelessWidget {
-  final _Category category;
-  const _CategoryTile({required this.category});
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () {},
-      child: SizedBox(
-        width: 64,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 64,
-              height: 64,
-              decoration: BoxDecoration(
-                color: _surfaceLow,
-                borderRadius: BorderRadius.circular(12),
-                boxShadow: [
-                  BoxShadow(
-                    color: const Color(0xFF1B1C1D).withValues(alpha: 0.06),
-                    blurRadius: 20,
-                    spreadRadius: -10,
-                    offset: const Offset(0, 4),
+        physics: const BouncingScrollPhysics(),
+        padding: EdgeInsets.zero,
+        itemCount: _categories.length,
+        separatorBuilder: (_, __) => const SizedBox(width: 16),
+        itemBuilder: (_, i) {
+          final c = _categories[i];
+          return GestureDetector(
+            onTap: () => onTap(c),
+            behavior: HitTestBehavior.opaque,
+            child: SizedBox(
+              width: 66,
+              child: Column(
+                children: [
+                  Container(
+                    width: 66,
+                    height: 66,
+                    decoration: BoxDecoration(
+                      gradient: swatch(c.a, c.b),
+                      borderRadius: BorderRadius.circular(18),
+                      border: Border.all(
+                          color: Colors.white.withValues(alpha: 0.5),
+                          width: 1.5),
+                    ),
+                    child: Icon(c.icon, color: c.iconColor, size: 30),
+                  ),
+                  const SizedBox(height: 9),
+                  Text(
+                    c.name,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: kInk2),
                   ),
                 ],
               ),
-              clipBehavior: Clip.hardEdge,
-              child: Image.network(
-                category.imageUrl,
-                fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => const Icon(
-                    Icons.category_rounded,
-                    color: _onSurfaceVariant),
-              ),
             ),
-            const SizedBox(height: 8),
-            Text(
-              category.name,
-              style: const TextStyle(
-                fontSize: 11,
-                fontWeight: FontWeight.w600,
-                color: _onSurface,
-              ),
-              textAlign: TextAlign.center,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ],
-        ),
+          );
+        },
       ),
     );
   }
 }
 
 // ---------------------------------------------------------------------------
-// Deals Grid
+// Deals grid
 // ---------------------------------------------------------------------------
 
 class _DealsGrid extends StatelessWidget {
-  final List<_Deal> deals;
   final ValueChanged<_Deal> onAdd;
-  const _DealsGrid({required this.deals, required this.onAdd});
+  final ValueChanged<_Deal> onOpen;
+  const _DealsGrid({required this.onAdd, required this.onOpen});
 
   @override
   Widget build(BuildContext context) {
     return GridView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
+      padding: EdgeInsets.zero,
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 2,
-        crossAxisSpacing: 12,
-        mainAxisSpacing: 12,
-        childAspectRatio: 0.78,
+        crossAxisSpacing: 14,
+        mainAxisSpacing: 14,
+        childAspectRatio: 0.74,
       ),
-      itemCount: deals.length,
-      itemBuilder: (_, i) => _DealCard(deal: deals[i], onAdd: () => onAdd(deals[i])),
+      itemCount: _deals.length,
+      itemBuilder: (_, i) => _DealCard(
+        deal: _deals[i],
+        onAdd: () => onAdd(_deals[i]),
+        onOpen: () => onOpen(_deals[i]),
+      ),
     );
   }
 }
@@ -695,165 +492,82 @@ class _DealsGrid extends StatelessWidget {
 class _DealCard extends StatelessWidget {
   final _Deal deal;
   final VoidCallback onAdd;
-  const _DealCard({required this.deal, required this.onAdd});
+  final VoidCallback onOpen;
+  const _DealCard(
+      {required this.deal, required this.onAdd, required this.onOpen});
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: _surfaceLowest,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFF1B1C1D).withValues(alpha: 0.06),
-            blurRadius: 20,
-            spreadRadius: -10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Image + badge
-          Stack(
-            children: [
-              ClipRRect(
-                borderRadius:
-                    const BorderRadius.vertical(top: Radius.circular(12)),
-                child: Image.network(
-                  deal.imageUrl,
-                  height: 128,
-                  width: double.infinity,
-                  fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => Container(
-                    height: 128,
-                    color: _surfaceLow,
-                    child: const Icon(Icons.image_outlined,
-                        color: _onSurfaceVariant, size: 36),
-                  ),
+    return GestureDetector(
+      onTap: onOpen,
+      child: Container(
+        padding: const EdgeInsets.all(10),
+        decoration: BoxDecoration(
+          color: kCard,
+          borderRadius: BorderRadius.circular(18),
+          boxShadow: cardShadow(),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(13),
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    DecoratedBox(
+                        decoration:
+                            BoxDecoration(gradient: gradientFor(deal.key))),
+                    const Align(
+                        alignment: Alignment.topLeft, child: CashBackBadge()),
+                  ],
                 ),
-              ),
-              Positioned(
-                top: 8,
-                left: 8,
-                child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: _primary,
-                    borderRadius: BorderRadius.circular(999),
-                  ),
-                  child: const Text(
-                    '10% Cash Back',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 10,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-
-          // Info
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    deal.name,
-                    style: const TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: _onSurface,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'Rs. ${deal.price % 1 == 0 ? deal.price.toInt() : deal.price.toStringAsFixed(2)}.00',
-                        style: const TextStyle(
-                          color: _primary,
-                          fontSize: 13,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                      GestureDetector(
-                        onTap: onAdd,
-                        child: Container(
-                          width: 26,
-                          height: 26,
-                          decoration: const BoxDecoration(
-                            color: _primary,
-                            shape: BoxShape.circle,
-                          ),
-                          child: const Icon(Icons.add,
-                              color: Colors.white, size: 16),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
               ),
             ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// ---------------------------------------------------------------------------
-// Nav Item
-// ---------------------------------------------------------------------------
-
-class _NavItem extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final int index;
-  final int selected;
-  final ValueChanged<int> onTap;
-
-  const _NavItem({
-    required this.icon,
-    required this.label,
-    required this.index,
-    required this.selected,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final active = index == selected;
-    final color = active ? _primary : _onSurface.withValues(alpha: 0.45);
-
-    return InkWell(
-      onTap: () => onTap(index),
-      borderRadius: BorderRadius.circular(24),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, size: 24, color: color),
-            const SizedBox(height: 2),
+            const SizedBox(height: 11),
             Text(
-              label,
-              style: TextStyle(
-                fontSize: 9,
-                fontWeight: active ? FontWeight.w700 : FontWeight.w500,
-                color: color,
-                letterSpacing: 0.5,
-              ),
+              deal.name,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w700,
+                  color: kInk,
+                  height: 1.2),
+            ),
+            const SizedBox(height: 8),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Rs. ${money(deal.price)}',
+                  style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w800,
+                      color: kMagenta),
+                ),
+                GestureDetector(
+                  onTap: onAdd,
+                  child: Container(
+                    width: 31,
+                    height: 31,
+                    decoration: BoxDecoration(
+                      color: kMagenta,
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: kMagenta.withValues(alpha: 0.5),
+                          blurRadius: 10,
+                          spreadRadius: -4,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: const Icon(Icons.add, color: Colors.white, size: 18),
+                  ),
+                ),
+              ],
             ),
           ],
         ),
@@ -861,4 +575,3 @@ class _NavItem extends StatelessWidget {
     );
   }
 }
-
