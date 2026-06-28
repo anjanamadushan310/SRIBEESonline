@@ -34,6 +34,9 @@ const kSuccess = Color(0xFF1F7A32);
 const kSuccessBg = Color(0xFFD4F3CF);
 const kNavInactive = Color(0xFFA7A3AD);
 const kMagentaAppbarStart = Color(0xFF9C1E63);
+const kSurfaceLowest = Color(0xFFFFFFFF);
+const kSurfaceContainer = Color(0xFFEFEDEF);
+const kSurfaceContainerHigh = Color(0xFFE9E8E9);
 
 // Shadow base colour (rgba 40,20,40).
 const _shadowInk = Color(0xFF281428);
@@ -582,6 +585,31 @@ class CashBackBadge extends StatelessWidget {
           color: Colors.white,
           fontSize: 10,
           fontWeight: FontWeight.w800,
+        ),
+      ),
+    );
+  }
+}
+
+/// "10% CASH BACK" pill (magenta, used on the product price block).
+class CashBackPill extends StatelessWidget {
+  const CashBackPill({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+      decoration: BoxDecoration(
+        color: kMagenta,
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: const Text(
+        '10% CASH BACK',
+        style: TextStyle(
+          color: Colors.white,
+          fontSize: 10,
+          fontWeight: FontWeight.w800,
+          letterSpacing: 0.6,
         ),
       ),
     );
