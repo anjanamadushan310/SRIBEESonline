@@ -55,51 +55,51 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
       body: SafeArea(
         bottom: false,
         child: SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(18, 18, 18, 24),
+          padding: const EdgeInsets.fromLTRB(20, 18, 20, 28),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               _backButton(),
-              const SizedBox(height: 14),
+              const SizedBox(height: 16),
               const Text('Finalize Order',
                   style: TextStyle(
-                      fontSize: 32,
-                      fontWeight: FontWeight.w800,
+                      fontSize: 24,
+                      fontWeight: FontWeight.w700,
                       color: kInk,
-                      letterSpacing: -0.5)),
+                      letterSpacing: -0.3)),
               const SizedBox(height: 6),
               const Text(
                   'Review your details before we prepare your delivery.',
                   style: TextStyle(
-                      fontSize: 15, color: Color(0xFF5A5A64), height: 1.4)),
-              const SizedBox(height: 22),
+                      fontSize: 13, color: Color(0xFF5A5A64), height: 1.4)),
+              const SizedBox(height: 24),
 
               _deliveryCard(),
-              const SizedBox(height: 18),
+              const SizedBox(height: 16),
               _paymentCard(walletDeduction, total),
-              const SizedBox(height: 18),
+              const SizedBox(height: 16),
               _summaryCard(items, subtotal, delivery, walletDeduction, total,
                   cashBack),
-              const SizedBox(height: 18),
+              const SizedBox(height: 16),
 
               // Terms
               GestureDetector(
                 onTap: () => setState(() => _agree = !_agree),
                 behavior: HitTestBehavior.opaque,
                 child: Container(
-                  padding: const EdgeInsets.all(16),
+                  padding: const EdgeInsets.all(14),
                   decoration: BoxDecoration(
                       color: kFill, borderRadius: BorderRadius.circular(14)),
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       _CheckBox(selected: _agree),
-                      const SizedBox(width: 13),
+                      const SizedBox(width: 12),
                       Expanded(
                         child: RichText(
                           text: const TextSpan(
                             style: TextStyle(
-                                fontSize: 14, height: 1.5, color: kInk2),
+                                fontSize: 13, height: 1.5, color: kInk2),
                             children: [
                               TextSpan(text: "I agree to the SRIBEES' "),
                               TextSpan(
@@ -121,20 +121,20 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                   ),
                 ),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 24),
 
               // Place order
               GestureDetector(
                 onTap: _placeOrder,
                 child: Container(
-                  height: 56,
+                  height: 54,
                   alignment: Alignment.center,
                   decoration: BoxDecoration(
                     gradient: _agree
                         ? swatch(kMagenta, kMagentaDeep)
                         : null,
                     color: _agree ? null : const Color(0xFFF1C7D8),
-                    borderRadius: BorderRadius.circular(30),
+                    borderRadius: BorderRadius.circular(28),
                   ),
                   child: const Row(
                     mainAxisSize: MainAxisSize.min,
@@ -142,11 +142,11 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                       Text('Place Order',
                           style: TextStyle(
                               color: Colors.white,
-                              fontSize: 18,
-                              fontWeight: FontWeight.w800)),
-                      SizedBox(width: 10),
+                              fontSize: 16,
+                              fontWeight: FontWeight.w700)),
+                      SizedBox(width: 9),
                       Icon(Icons.arrow_forward_rounded,
-                          color: Colors.white, size: 20),
+                          color: Colors.white, size: 18),
                     ],
                   ),
                 ),
@@ -202,11 +202,11 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
   Widget _sectionHeader(IconData icon, String title) {
     return Row(
       children: [
-        Icon(icon, color: kMagenta, size: 22),
-        const SizedBox(width: 10),
+        Icon(icon, color: kMagenta, size: 18),
+        const SizedBox(width: 9),
         Text(title,
             style: const TextStyle(
-                fontSize: 19, fontWeight: FontWeight.w800, color: kInk)),
+                fontSize: 15, fontWeight: FontWeight.w700, color: kInk)),
       ],
     );
   }
@@ -217,27 +217,27 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _sectionHeader(Icons.location_on_rounded, 'Delivery Address'),
-          const SizedBox(height: 16),
+          const SizedBox(height: 14),
           GestureDetector(
             onTap: () => showToast(context, 'Change delivery address'),
             child: Container(
-              padding: const EdgeInsets.all(14),
+              padding: const EdgeInsets.all(13),
               decoration: BoxDecoration(
                   color: kFill, borderRadius: BorderRadius.circular(14)),
               child: Row(
                 children: const [
-                  Icon(Icons.home_outlined, color: Color(0xFF6A6A74), size: 20),
-                  SizedBox(width: 12),
+                  Icon(Icons.home_outlined, color: Color(0xFF8C8C97), size: 17),
+                  SizedBox(width: 11),
                   Expanded(
                     child: Text('42/A, Flower Road, Colombo 07...',
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w700,
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
                             color: kInk)),
                   ),
-                  Icon(Icons.chevron_right_rounded, color: kMuted, size: 20),
+                  Icon(Icons.chevron_right_rounded, color: kMuted, size: 16),
                 ],
               ),
             ),
@@ -245,12 +245,12 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
           const SizedBox(height: 16),
           const Text('Contact Phone Number',
               style: TextStyle(
-                  fontSize: 13,
+                  fontSize: 12,
                   fontWeight: FontWeight.w600,
                   color: Color(0xFF5A5A64))),
           const SizedBox(height: 8),
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 13),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
             decoration: BoxDecoration(
               color: kCard,
               borderRadius: BorderRadius.circular(14),
@@ -258,11 +258,11 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
             ),
             child: Row(
               children: const [
-                Icon(Icons.phone_outlined, color: kMuted, size: 18),
-                SizedBox(width: 11),
+                Icon(Icons.phone_outlined, color: kMuted, size: 16),
+                SizedBox(width: 10),
                 Text('07X XXX XXXX',
                     style: TextStyle(
-                        fontSize: 15,
+                        fontSize: 13,
                         color: kPlaceholder,
                         letterSpacing: 0.4)),
               ],
@@ -279,9 +279,9 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _sectionHeader(Icons.credit_card_rounded, 'Payment Method'),
-          const SizedBox(height: 16),
+          const SizedBox(height: 14),
           Container(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
                 color: const Color(0xFFFCE7F0),
                 borderRadius: BorderRadius.circular(14)),
@@ -290,19 +290,20 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                 Row(
                   children: [
                     const Icon(Icons.account_balance_wallet_outlined,
-                        color: kMagenta, size: 22),
-                    const SizedBox(width: 11),
+                        color: kMagenta, size: 18),
+                    const SizedBox(width: 10),
                     const Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text('SRIBEES Wallet',
                               style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w800,
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w700,
                                   color: kInk)),
+                          SizedBox(height: 1),
                           Text('Balance: Rs. 500.00',
-                              style: TextStyle(fontSize: 12, color: kMuted)),
+                              style: TextStyle(fontSize: 11, color: kMuted)),
                         ],
                       ),
                     ),
@@ -318,7 +319,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                     alignment: Alignment.centerLeft,
                     child: Text('Enter amount to use',
                         style: TextStyle(
-                            fontSize: 13,
+                            fontSize: 12,
                             fontWeight: FontWeight.w600,
                             color: kInk2)),
                   ),
@@ -326,51 +327,51 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                   Container(
                     width: double.infinity,
                     padding: const EdgeInsets.symmetric(
-                        horizontal: 15, vertical: 13),
+                        horizontal: 14, vertical: 12),
                     decoration: BoxDecoration(
                         color: kCard,
                         borderRadius: BorderRadius.circular(12)),
                     child: Text('Rs.  ${money(walletDeduction)}',
                         style: const TextStyle(
-                            fontSize: 16,
+                            fontSize: 14,
                             fontWeight: FontWeight.w700,
                             color: kInk)),
                   ),
-                  const SizedBox(height: 10),
+                  const SizedBox(height: 9),
                   Text(
                     'Rs. ${money(walletDeduction)} will be deducted from your '
                     'total. Please pay the remaining Rs. ${money(total)} using '
                     'another method.',
-                    style: const TextStyle(
-                        fontSize: 12,
-                        color: kMagentaAppbarStart,
+                    style: TextStyle(
+                        fontSize: 11,
+                        color: kMagentaAppbarStart.withValues(alpha: 0.85),
                         height: 1.5),
                   ),
                 ],
               ],
             ),
           ),
-          const SizedBox(height: 14),
+          const SizedBox(height: 12),
           GestureDetector(
             onTap: () => showToast(context, 'Select payment method'),
             child: Container(
-              padding: const EdgeInsets.all(14),
+              padding: const EdgeInsets.all(13),
               decoration: BoxDecoration(
                   color: kFill, borderRadius: BorderRadius.circular(14)),
               child: Row(
                 children: const [
                   Icon(Icons.account_balance_outlined,
-                      color: Color(0xFF6A6A74), size: 22),
-                  SizedBox(width: 12),
+                      color: Color(0xFF8C8C97), size: 18),
+                  SizedBox(width: 11),
                   Expanded(
                     child: Text('ගෙවීම් ක්‍රමය තෝරන්න (Select Payment Method)',
                         style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w700,
+                            fontSize: 12.5,
+                            fontWeight: FontWeight.w600,
                             color: kInk,
                             height: 1.35)),
                   ),
-                  Icon(Icons.chevron_right_rounded, color: kMuted, size: 20),
+                  Icon(Icons.chevron_right_rounded, color: kMuted, size: 16),
                 ],
               ),
             ),
@@ -393,13 +394,13 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _sectionHeader(Icons.receipt_long_outlined, 'Order Summary'),
-          const SizedBox(height: 18),
+          const SizedBox(height: 16),
           if (items.isEmpty)
             const Text('No items in your order',
-                style: TextStyle(fontSize: 14, color: kMuted))
+                style: TextStyle(fontSize: 13, color: kMuted))
           else
             ...items.map((i) => Padding(
-                  padding: const EdgeInsets.only(bottom: 11),
+                  padding: const EdgeInsets.only(bottom: 10),
                   child: Row(
                     children: [
                       Expanded(
@@ -407,12 +408,12 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: const TextStyle(
-                                fontSize: 15, color: kInk2)),
+                                fontSize: 13, color: kInk2)),
                       ),
                       Text('Rs. ${money(i.total)}',
                           style: const TextStyle(
-                              fontSize: 15,
-                              fontWeight: FontWeight.w800,
+                              fontSize: 13,
+                              fontWeight: FontWeight.w700,
                               color: kInk)),
                     ],
                   ),
@@ -420,22 +421,22 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
           const _DashedLine(),
           const SizedBox(height: 14),
           _row('Subtotal', 'Rs. ${money(subtotal)}'),
-          const SizedBox(height: 11),
+          const SizedBox(height: 10),
           _row('Delivery Fee', 'Rs. ${money(delivery)}'),
           if (walletDeduction > 0) ...[
-            const SizedBox(height: 11),
+            const SizedBox(height: 10),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 const Text('Wallet Deduction',
                     style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w700,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
                         color: kMagentaAppbarStart)),
                 Text('- Rs. ${money(walletDeduction)}',
                     style: const TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w800,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
                         color: kMagentaAppbarStart)),
               ],
             ),
@@ -450,35 +451,35 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('TOTAL AMOUNT',
+                  Text('TOTAL AMOUNT',
                       style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w700,
-                          letterSpacing: 0.8,
-                          color: kMuted)),
-                  const SizedBox(height: 2),
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          letterSpacing: 1.0,
+                          color: kMuted.withValues(alpha: 0.8))),
+                  const SizedBox(height: 3),
                   Text('Rs. ${money(total)}',
                       style: const TextStyle(
-                          fontSize: 34,
-                          fontWeight: FontWeight.w800,
+                          fontSize: 26,
+                          fontWeight: FontWeight.w700,
                           color: kMagenta,
-                          letterSpacing: -1)),
+                          letterSpacing: -0.5)),
                 ],
               ),
               Icon(Icons.verified_outlined,
-                  size: 34, color: kMagenta.withValues(alpha: 0.3)),
+                  size: 26, color: kMagenta.withValues(alpha: 0.3)),
             ],
           ),
           const SizedBox(height: 16),
           Container(
             width: double.infinity,
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
             decoration: BoxDecoration(
                 color: kSuccessBg, borderRadius: BorderRadius.circular(12)),
             child: Text(
               'You will earn Rs. ${money(cashBack)} Cash Back on this order',
               style: const TextStyle(
-                  fontSize: 14,
+                  fontSize: 12.5,
                   fontWeight: FontWeight.w600,
                   color: kSuccess,
                   height: 1.4),
@@ -494,10 +495,10 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Text(label,
-            style: const TextStyle(fontSize: 15, color: Color(0xFF5A5A64))),
+            style: const TextStyle(fontSize: 13, color: Color(0xFF5A5A64))),
         Text(value,
             style: const TextStyle(
-                fontSize: 15, fontWeight: FontWeight.w700, color: kInk)),
+                fontSize: 13, fontWeight: FontWeight.w600, color: kInk)),
       ],
     );
   }

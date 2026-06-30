@@ -133,7 +133,7 @@ class SribeesWordmark extends StatelessWidget {
   Widget build(BuildContext context) {
     const style = TextStyle(
       color: Colors.white,
-      fontSize: 24,
+      fontSize: 20,
       fontWeight: FontWeight.w800,
       fontStyle: FontStyle.italic,
       letterSpacing: -0.5,
@@ -153,14 +153,14 @@ class SribeesWordmark extends StatelessWidget {
             child: const Text('E', style: style),
           ),
           const Text('S', style: style),
-          const SizedBox(width: 6),
+          const SizedBox(width: 5),
           Padding(
             padding: const EdgeInsets.only(bottom: 2),
             child: Text(
               'Online',
               style: TextStyle(
                 color: Colors.white.withValues(alpha: 0.95),
-                fontSize: 13,
+                fontSize: 12,
                 fontWeight: FontWeight.w600,
                 fontStyle: FontStyle.italic,
               ),
@@ -189,7 +189,7 @@ class SribeesHeader extends ConsumerWidget {
     final topInset = MediaQuery.of(context).padding.top;
 
     return Container(
-      padding: EdgeInsets.fromLTRB(18, topInset + 14, 18, 16),
+      padding: EdgeInsets.fromLTRB(18, topInset + 12, 18, 14),
       decoration: const BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment(-0.9, -0.5),
@@ -228,7 +228,7 @@ class _CartPill extends StatelessWidget {
       onTap: onTap,
       behavior: HitTestBehavior.opaque,
       child: Container(
-        padding: const EdgeInsets.fromLTRB(8, 6, 12, 6),
+        padding: const EdgeInsets.fromLTRB(7, 5, 11, 5),
         decoration: BoxDecoration(
           color: Colors.white.withValues(alpha: 0.2),
           borderRadius: BorderRadius.circular(22),
@@ -240,14 +240,14 @@ class _CartPill extends StatelessWidget {
               clipBehavior: Clip.none,
               children: [
                 const Icon(Icons.shopping_cart_outlined,
-                    color: Colors.white, size: 20),
+                    color: Colors.white, size: 18),
                 if (count > 0)
                   Positioned(
-                    top: -7,
-                    right: -8,
+                    top: -6,
+                    right: -7,
                     child: Container(
-                      width: 16,
-                      height: 16,
+                      width: 15,
+                      height: 15,
                       alignment: Alignment.center,
                       decoration: const BoxDecoration(
                         color: Colors.white,
@@ -257,7 +257,7 @@ class _CartPill extends StatelessWidget {
                         '$count',
                         style: const TextStyle(
                           color: kMagenta,
-                          fontSize: 10,
+                          fontSize: 9,
                           fontWeight: FontWeight.w800,
                         ),
                       ),
@@ -270,7 +270,7 @@ class _CartPill extends StatelessWidget {
               'Rs${money(total)}',
               style: const TextStyle(
                 color: Colors.white,
-                fontSize: 13,
+                fontSize: 12,
                 fontWeight: FontWeight.w800,
               ),
             ),
