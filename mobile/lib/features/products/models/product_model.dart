@@ -8,6 +8,13 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 part 'product_model.freezed.dart';
 part 'product_model.g.dart';
 
+/// A product as the customer sees it **in their resolved branch**.
+///
+/// `price` is always the *effective* price: the backend merges the branch
+/// override over the global catalog value (branch_price ?? product.price)
+/// before serializing, so the app never has to know which one it got. When the
+/// branch overrides the price, `globalPrice` carries the catalog price it
+/// replaced — useful for showing what the override saved.
 @freezed
 class Product with _$Product {
   const factory Product({
@@ -16,9 +23,12 @@ class Product with _$Product {
     required String? description,
     required double price,
     double? salePrice,
+    double? globalPrice,
     required int stockQuantity,
     required String categoryId,
     String? categoryName,
+    String? subcategoryId,
+    String? subcategoryName,
     String? brand,
     String? sku,
     @Default([]) List<ProductImage> images,
@@ -35,13 +45,24 @@ class Product with _$Product {
         'id': json['product_id'] ?? json['id'],
         'name': json['name'],
         'description': json['description'],
-        'price': (json['price'] as num).toDouble(),
-        'salePrice': json['sale_price'] != null
-            ? (json['sale_price'] as num).toDouble()
+        'price': (json['price'] as num?)?.toDouble() ??
+            (json['global_price'] as num?)?.toDouble() ??
+            0,
+        // Backend exposes the reduced price as `discount_price`; keep
+        // `sale_price` as a fallback for other shapes.
+        'salePrice': (json['discount_price'] ?? json['sale_price']) != null
+            ? ((json['discount_price'] ?? json['sale_price']) as num).toDouble()
             : null,
+        'globalPrice': (json['global_price'] as num?)?.toDouble(),
         'stockQuantity': json['stock_quantity'] ?? 0,
-        'categoryId': json['category_id'] ?? '',
+        // The API sends the flat id alongside a nested `category` object; read
+        // the flat one and fall back to the nested shape.
+        'categoryId':
+            json['category_id'] ?? json['category']?['category_id'] ?? '',
         'categoryName': json['category']?['name'],
+        'subcategoryId':
+            json['subcategory_id'] ?? json['subcategory']?['category_id'],
+        'subcategoryName': json['subcategory']?['name'],
         'brand': json['brand'],
         'sku': json['sku'],
         'images': json['images'] ?? [],

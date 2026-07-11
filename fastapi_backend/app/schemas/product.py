@@ -1,12 +1,12 @@
 """
 Product Pydantic Schemas
 """
-from pydantic import BaseModel, Field
-from typing import Optional, List
-from uuid import UUID
 from datetime import datetime
 from decimal import Decimal
+from typing import List, Optional
+from uuid import UUID
 
+from pydantic import BaseModel, Field
 
 # ============================================================================
 # Nested Schemas
@@ -19,7 +19,7 @@ class ProductImageSchema(BaseModel):
     alt_text: Optional[str] = None
     is_primary: bool = False
     sort_order: int = 0
-    
+
     model_config = {"from_attributes": True}
 
 
@@ -29,7 +29,7 @@ class ProductCategorySchema(BaseModel):
     name: str
     slug: str
     image_url: Optional[str] = None
-    
+
     model_config = {"from_attributes": True}
 
 
@@ -39,7 +39,7 @@ class VariantTypeSchema(BaseModel):
     name: str
     display_name: str
     options: List[str] = []
-    
+
     model_config = {"from_attributes": True}
 
 
@@ -53,7 +53,7 @@ class ProductVariantSchema(BaseModel):
     stock_quantity: int = 0
     image_url: Optional[str] = None
     is_active: bool = True
-    
+
     model_config = {"from_attributes": True}
 
 
@@ -72,6 +72,10 @@ class ProductCreate(BaseModel):
     compare_at_price: Optional[Decimal] = Field(None, ge=0)
     cost_price: Optional[Decimal] = Field(None, ge=0)
     category_id: Optional[UUID] = None
+    subcategory_id: Optional[UUID] = Field(
+        None,
+        description="Sub-category — must be a child of category_id",
+    )
     stock_quantity: int = Field(0, ge=0)
     low_stock_threshold: int = Field(10, ge=0)
     weight: Optional[Decimal] = None
@@ -93,6 +97,10 @@ class ProductUpdate(BaseModel):
     compare_at_price: Optional[Decimal] = Field(None, ge=0)
     cost_price: Optional[Decimal] = Field(None, ge=0)
     category_id: Optional[UUID] = None
+    subcategory_id: Optional[UUID] = Field(
+        None,
+        description="Sub-category — must be a child of category_id",
+    )
     stock_quantity: Optional[int] = Field(None, ge=0)
     low_stock_threshold: Optional[int] = Field(None, ge=0)
     weight: Optional[Decimal] = None
@@ -143,7 +151,7 @@ class ProductBase(BaseModel):
     view_count: int = 0
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
-    
+
     model_config = {"from_attributes": True}
 
 
@@ -155,7 +163,7 @@ class ProductResponse(ProductBase):
     has_variants: bool = False
     variants: Optional[List[ProductVariantSchema]] = None
     variant_types: Optional[List[VariantTypeSchema]] = None
-    
+
     @property
     def _id(self) -> str:
         return str(self.product_id)
@@ -174,7 +182,7 @@ class ProductListItem(BaseModel):
     is_featured: bool
     category: Optional[ProductCategorySchema] = None
     images: List[ProductImageSchema] = []
-    
+
     model_config = {"from_attributes": True}
 
 
@@ -339,30 +347,5 @@ class BranchInventoryResponse(BaseModel):
 
     model_config = {"from_attributes": True}
 
-
-# ============================================================================
-# Inventory Manager Schemas
-# ============================================================================
-
-class StockUpdateRequest(BaseModel):
-    """Request body for inventory manager to update stock & active status."""
-    stock_quantity: int = Field(..., ge=0, description="Branch-level stock quantity")
-    is_active: Optional[bool] = Field(
-        None,
-        description="Set False to hide this product from this branch",
-    )
-
-
-class PricingUpdateRequest(BaseModel):
-    """Request body for inventory manager to set branch pricing overrides."""
-    branch_price: Optional[Decimal] = Field(
-        None,
-        ge=0,
-        description="Override price for this branch. Set null to use global price.",
-    )
-    discount_percentage: Optional[float] = Field(
-        None,
-        ge=0,
-        le=100,
-        description="Override discount %. Set null to use global discount.",
-    )
+# Branch stock/pricing overrides are written through the BranchScope-governed
+# /admin/inventory surface (app/schemas/inventory.py), not from here.
